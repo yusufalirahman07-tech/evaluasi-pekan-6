@@ -387,3 +387,77 @@ for (let t of transaksiBersih) {
     break;
   }
 }
+
+
+// ==========================================
+// BAGIAN 4: LAPORAN HARIAN
+// ==========================================
+const riwayatLunas = kasir.riwayat.filter(r => r.status === "LUNAS");
+let jumlahTransaksi = kasir.riwayat.length;
+let jumlahLunas = riwayatLunas.length;
+let jumlahKurang = kasir.riwayat.filter(r => r.status === "KURANG").length;
+let jumlahDitolak = kasir.riwayat.filter(r => r.status === "DITOLAK").length;
+let pendapatan = riwayatLunas.reduce((sum, r) => sum + r.total, 0);
+let rataRata = jumlahLunas > 0 ? Math.round(pendapatan / jumlahLunas) : 0;
+let transaksiTerbesar = riwayatLunas.reduce((max, r) => (!max || r.total > max.total ? r : max), null);
+
+let penjualanPerMenu = {};
+for (let r of riwayatLunas) {
+  for (let item of r.itemValid) {
+    if (item.menu in penjualanPerMenu) {
+      penjualanPerMenu[item.menu] += item.jumlah;
+    } else {
+      penjualanPerMenu[item.menu] = item.jumlah;
+    }
+  }
+}
+
+let menuTerlaris = "";
+let maxTerjual = -1;
+for (let m in penjualanPerMenu) {
+  if (penjualanPerMenu[m] > maxTerjual) {
+    maxTerjual = penjualanPerMenu[m];
+    menuTerlaris = m;
+  }
+}
+
+let daftarDitolak = kasir.riwayat.filter(r => r.status === "DITOLAK").map(r => ({ kode: r.kode, alasan: r.alasan }));
+let kodeLunas = [];
+for (let r of riwayatLunas) {
+  kodeLunas.push(r.kode);
+}
+
+let ringkasanKode = "";
+for (let i = 0; i < kodeLunas.length; i++) {
+  ringkasanKode += kodeLunas[i];
+  if (i < kodeLunas.length - 1) ringkasanKode += ", ";
+}
+
+let menuStokMenipis = [];
+for (let m of kasir.menu) {
+  if (m.stok < 3) menuStokMenipis.push(m.nama);
+}
+
+console.log(`LAPORAN HARIAN ${kedai.nama.toUpperCase()}`);
+console.log(`Jumlah Transaksi: ${jumlahTransaksi}`);
+console.log(`Lunas: ${jumlahLunas}, Kurang: ${jumlahKurang}, Ditolak: ${jumlahDitolak}`);
+console.log(`Pendapatan: ${formatRupiah(pendapatan)}`);
+console.log(`Rata-rata: ${formatRupiah(rataRata)}`);
+console.log(`Transaksi Terbesar:`, transaksiTerbesar);
+console.log(`Penjualan Per Menu:`, penjualanPerMenu);
+console.log(`Keys:`, Object.keys(penjualanPerMenu));
+console.log(`Values:`, Object.values(penjualanPerMenu));
+console.log(`Menu Terlaris: ${menuTerlaris}`);
+console.log(`Menu Stok Menipis:`, menuStokMenipis);
+console.log(`Ringkasan Kode: ${ringkasanKode}`);
+console.log(`Validasi Jumlah Kode:`, ringkasanKode.split(", ").length === jumlahLunas);
+
+// Demo Array Method
+console.log(`Includes TRX-001:`, kodeLunas.includes("TRX-001"));
+console.log(`IndexOf TRX-001:`, kodeLunas.indexOf("TRX-001"));
+console.log(`Slice 2 Pertama:`, kodeLunas.slice(0, 2));
+let salinanKode = kodeLunas.slice();
+salinanKode.splice(0, 1);
+console.log(`Salinan setelah splice:`, salinanKode);
+console.log(`KodeLunas asli (tetap):`, kodeLunas);
+
